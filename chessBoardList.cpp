@@ -50,6 +50,16 @@ boardArray_t getNewBoard() {
             board[x][i].isEmpty     = false;
         }
     }
-
     return board;
 }
+
+
+void printChessArrangement(boardArray_t board) {
+    for (int y=7; y >=0 ; y--) {
+        for (int x=0; x < 8; x++) {
+            cout << board[x][y].pieceSymbol << "  " ;
+        }
+        cout << "\n";
+    }
+}
+

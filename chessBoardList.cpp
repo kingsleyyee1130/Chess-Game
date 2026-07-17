@@ -2,7 +2,6 @@
 #include <windows.h>
 #include <array>
 #include <string>
-#include <iomanip>
 
 using std::cout, std::string, std::array, std::to_string;
 
@@ -55,6 +54,7 @@ boardArray_t getNewBoard() {
 
 
 void printChessArrangement(boardArray_t board) {
+    SetConsoleOutputCP(CP_UTF8);
     for (int y=7; y >=0 ; y--) {
         for (int x=0; x < 8; x++) {
             cout << board[x][y].pieceSymbol << "  " ;

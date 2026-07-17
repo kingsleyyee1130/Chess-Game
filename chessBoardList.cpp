@@ -53,18 +53,3 @@ boardArray_t getNewBoard() {
 
     return board;
 }
-
-
-int main() {
-    SetConsoleOutputCP(CP_UTF8);
-    auto board = getNewBoard();
-    cout << board[0][7].cellName << "\n" << board[0][7].pieceName << "\n" << board[0][5].cellOwner << "\n";
-
-    for (int y=7; y >=0 ; y--) {
-        for (int x=0; x < 8; x++) {
-            cout << board[x][y].pieceSymbol << "  " ;
-        }
-        cout << "\n";
-    }
-    return 0;
-}

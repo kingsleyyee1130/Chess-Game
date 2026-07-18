@@ -1,6 +1,13 @@
 #include <iostream>
 #include <string>
-#include <array>
+#include <array>    
+
+/*  "include file for using board functions"
+ *  How to get board list: 1. #include "chessBoardList.h"
+ *                         2. use auto type-identifier for getNewBoard() to accept board list
+ *
+ *  printChessArrangement() will only print chess symbol in order
+ */ 
 
 using std::string, std::array;
 

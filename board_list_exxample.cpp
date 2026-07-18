@@ -4,6 +4,12 @@
 int main() {
   auto board = getNewBoard();
   printChessArrangement(board);
+  std::cout << board[0][0].cellName << "\n";
+  std::cout << board[3][0].pieceName << "\n";
+  std::cout << board[4][7].pieceSymbol << "\n";
+  std::cout << board[5][5].isEmpty << "\n";
+  std::cout << board[6][6].cellOwner << "\n";
+    
   return 0;
 }
 
@@ -13,6 +19,6 @@ int main() {
  *                    2. board.pieceName     =  "King" / "Rook" ...
  *                    3. board.pieceSymbol   =  "♔"
  *                    4. board.isEmpty       =  true / false
- *                    5. cellOwner           =  'w' for white / 'b' for black
+ *                    5. board.cellOwner     =  'w' for white / 'b' for black / 'n' for none
  *  
  */ 

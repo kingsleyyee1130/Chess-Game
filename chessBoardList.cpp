@@ -31,7 +31,7 @@ boardArray_t getNewBoard() {
     int col = 8;
 
     for (int y=0; y < row; y++) { //setting cell names (eg. a1, e4, h8 ...)
-        int rank = row - y; 
+        int rank = y + 1;
         for (int x=0; x < col; x++) {
             board[x][y].cellName = col_alphabet[x] + to_string(rank);
         }

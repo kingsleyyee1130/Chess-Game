@@ -12,7 +12,6 @@ struct Cell {
     string cellName = "00";
     char cellOwner = 'n'; // 'w'= white ; 'b'= black ; 'n'= none 
     bool isEmpty = true;
-    bool isEmpty = true;
     bool hasMoves = false;
     //bool isTargeted = false;
 };

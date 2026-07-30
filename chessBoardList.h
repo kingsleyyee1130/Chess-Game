@@ -1,9 +1,9 @@
-#ifndef CHESSBOARD_H
-#define CHESSBOARD_H
-
 #include <iostream>
 #include <string>
 #include <array>    
+
+#ifndef CHESSBOARD_H
+#define CHESSBOARD_H
 
 /*  "include file for using board functions"
  *  How to get board list: 1. #include "chessBoardList.h"

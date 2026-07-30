@@ -1,3 +1,6 @@
+#ifndef CHESSBOARD_H
+#define CHESSBOARD_H
+
 #include <iostream>
 #include <string>
 #include <array>    
@@ -27,3 +30,5 @@ typedef array<array<Cell, 8>, 8> boardArray_t;
 boardArray_t getNewBoard();
 
 void printChessArrangement(boardArray_t);
+
+#endif

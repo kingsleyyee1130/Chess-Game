@@ -1,13 +1,16 @@
 #pragma once
 #include <iostream>
-#include <stack>
+#include <vector>
+#include <string>
 #include "chessBoardList.h"
 
-// define coordinates of a piece
-struct coordinate {
-	char col; // ‘a’ to ‘h’
-	int row; // 1 to 8
-};
+/* To use gameState: "#include <gameLogic.h>"
+
+ Include file for game state logic such as:
+  - castling, 
+  - en passant,
+  - checkmate/stalemate detection,
+ and etc. */ 
 
 // this struct is updated after every move to display the current game state
 struct gameState {
@@ -15,22 +18,30 @@ struct gameState {
 	bool isWhiteTurn = true;
 
 	// defaulting to no 'en passant target' at game start
-	int enPassantTarget = { ' ', -1 };
+	// using cellName format from chessBoardList.h
+	string enPassantTarget = "00";
 
 	// default castling availabities at game start
 	bool whiteCanCastleKS = true;
 	bool whiteCanCastleQS = true;
 	bool blackCanCastleKS = true;
 	bool blackCanCastleQS = true;
+
+	// description of the last move made
+	string lastMoveText = "Game started"; // or "White moved Pawn to e4"
+	int moveCount = 1;
 };
 
-void executeMove(gameState& state, int startCell[2], int endCell[2]) {
+struct matchHistory;
 
-	// to move a piece from one cell to another
-	state.board[endCell[0]][endCell[1]].pieceName = state.board[startCell[0]][startCell[1]].pieceName; // Error: arrays could only read numbers!
-	state.board[startCell].pieceName = "None";
+void executeMove(gameState& state, int startCell[2], int endCell[2]);
 
-	// switch turns
-	state.isWhiteTurn = !state.isWhiteTurn;
-};
+bool isKingInCheck(gameState& state);
+bool isCheckmate(gameState& state);
+bool isStalemate(gameState& state);
 
+// records a single gameState before every move
+void recordState(gameState& state, std::vector<gameState>& history);
+
+// restores previous gameState from history
+bool undoMove(gameState& state, std::vector<gameState>& history);

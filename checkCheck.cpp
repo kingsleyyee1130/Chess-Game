@@ -96,5 +96,5 @@ bool isStaleMate(gameState state) {
     bool isBeingChecked = state.isInCheck;
     bool hasNoMovesLeft = !hasLegalMoves(state);
 
-    return (hasNoMovesLeft && isBeingChecked);
+    return (hasNoMovesLeft && !isBeingChecked);
 }

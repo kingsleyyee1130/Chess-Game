@@ -24,13 +24,32 @@ struct Cell
 // 8x8 board type
 typedef array<array<Cell, BOARD_SIZE>, BOARD_SIZE> boardArray_t;
 
-// Game state
-boardArray_t board;
+// Full game state
+struct gameState
+{
+    boardArray_t board;
+
+    bool isWhiteTurn = true;
+
+    // "00" = no en passant target square yet
+    string enPassantTarget = "00";
+
+    bool whiteCanCastleKS = true;
+    bool whiteCanCastleQS = true;
+    bool blackCanCastleKS = true;
+    bool blackCanCastleQS = true;
+
+    string lastMoveText = "Game started";
+    int moveCount = 1;
+};
+
+// The one and only game state currently in play.
+// The board is accessed as currentState.board[col][row].
+gameState currentState;
 
 string whitePlayer;
 string blackPlayer;
 
-bool whiteTurn = true;
 bool pieceSelected = false;
 
 int cursorRow = 7;
@@ -39,9 +58,11 @@ int cursorCol = 0;
 int selectedRow = -1;
 int selectedCol = -1;
 
-int moveCounter = 1;
-
 string columnLetter = "abcdefgh";
+
+// Path to the game state / save file.
+// gameState from this file is the teammate's storage.cpp job.
+string saveFileName = "savegame.txt";
 
 // Clears the console
 void clearScreen()
@@ -103,6 +124,7 @@ void showWelcomeScreen()
     cout<<"                                                              \n";
     cout<<"             Universiti Tunku Abdul Rahman                    \n";
     cout<<"                                                              \n";
+    cout<<"                       Group 34                               \n";
     cout<<"==============================================================\n\n";
 
     cout<<"                 Press ENTER to Continue";
@@ -211,12 +233,11 @@ boardArray_t getNewBoard()
     return temp;
 }
 
-// Resets board and turn state for a new game
+// Resets game state (board + turn info) for a new game
 void resetGame()
 {
-    board=getNewBoard();
-
-    whiteTurn=true;
+    currentState = gameState();          // back to default field values
+    currentState.board = getNewBoard();  // fresh board goes inside it
 
     pieceSelected=false;
 
@@ -225,8 +246,6 @@ void resetGame()
 
     selectedRow=-1;
     selectedCol=-1;
-
-    moveCounter=1;
 }
 
 // Continue-from-menu placeholder
@@ -279,7 +298,7 @@ void showGameInfo()
     if(whitePlayer.length() < 10)
         cout << "\t";
 
-    cout << "\tMove : " << moveCounter << endl;
+    cout << "\tMove : " << currentState.moveCount << endl;
 
     cout << "Black : " << blackPlayer;
 
@@ -288,7 +307,7 @@ void showGameInfo()
 
     cout << "\tTurn : ";
 
-    if(whiteTurn)
+    if(currentState.isWhiteTurn)
         cout << "White";
     else
         cout << "Black";
@@ -313,7 +332,7 @@ void showSelectedPiece()
     cout << "\nSelected : ";
 
     if(pieceSelected)
-        cout << board[selectedCol][selectedRow].cellName;
+        cout << currentState.board[selectedCol][selectedRow].cellName;
     else
         cout << "None";
 
@@ -327,8 +346,9 @@ void showControls()
 
     cout << " W A S D  : Move Cursor\n";
     cout << " E        : Select Piece\n";
-    cout << " R        : Continue Game\n";
     cout << " Q        : Save Game\n";
+    cout << " U        : Undo Move\n";
+    cout << " H        : View History\n";
     cout << " X        : Resign\n";
 
     cout << "--------------------------------------------------------\n";
@@ -337,7 +357,7 @@ void showControls()
 // Draws a single board square
 void drawCell(int row,int col)
 {
-    string piece = board[col][row].pieceSymbol;
+    string piece = currentState.board[col][row].pieceSymbol;
 
     if(piece=="")
         piece="  ";
@@ -428,7 +448,7 @@ void moveCursor(char key)
 // Selects the piece under the cursor (no move logic yet)
 void selectPiece()
 {
-    if(board[cursorCol][cursorRow].isEmpty)
+    if(currentState.board[cursorCol][cursorRow].isEmpty)
     {
         messageBox(
             "Selection",
@@ -444,9 +464,9 @@ void selectPiece()
 
     messageBox(
         "Piece Selected",
-        board[selectedCol][selectedRow].pieceName +
+        currentState.board[selectedCol][selectedRow].pieceName +
         " selected at " +
-        board[selectedCol][selectedRow].cellName
+        currentState.board[selectedCol][selectedRow].cellName
     );
 
     // TODO: apply the move
@@ -470,6 +490,24 @@ void continueSavedGame()
     );
 }
 
+// Undo placeholder
+void undoMove()
+{
+    messageBox(
+        "Undo Move",
+        "Waiting for teammate implementation."
+    );
+}
+
+// View history placeholder
+void viewHistory()
+{
+    messageBox(
+        "View History",
+        "Waiting for teammate implementation."
+    );
+}
+
 // End-of-game winner screen
 void winnerScreen(string winner)
 {
@@ -482,7 +520,7 @@ void winnerScreen(string winner)
     cout << "########################################################\n\n";
 
     cout << "Winner : " << winner << endl;
-    cout << "Moves  : " << moveCounter << endl << endl;
+    cout << "Moves  : " << currentState.moveCount << endl << endl;
 
     pauseScreen();
 }
@@ -499,7 +537,7 @@ void resignGame()
     string resigningPlayer;
     string winningPlayer;
 
-    if(whiteTurn)
+    if(currentState.isWhiteTurn)
     {
         resigningPlayer = whitePlayer;
         winningPlayer = blackPlayer;
@@ -548,8 +586,12 @@ void gameLoop()
                 saveGame();
                 break;
 
-            case 'R':
-                continueSavedGame();
+            case 'U':
+                undoMove();
+                break;
+
+            case 'H':
+                viewHistory();
                 break;
 
             case 'X':
@@ -572,9 +614,16 @@ void startNewGame()
     gameLoop();
 }
 
-int main()
+int main(int argc, char* argv[])
 {
     int choice;
+
+    // If a game state file was passed on the command line, use it
+    // instead of the default. e.g.  ./chess mysave.txt
+    if(argc > 1)
+    {
+        saveFileName = argv[1];
+    }
 
     showWelcomeScreen();
 

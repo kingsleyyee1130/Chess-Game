@@ -17,19 +17,6 @@ add > inside executeMove, should switch isWhiteTurn
 boardArray_t universalCheckPieceMoves(gameState, string);
 
 
-// Prototype of helper functions in-the-making
-bool isCheckingKing(gameState, Cell, char);
-
-bool isInCheck(gameState, int, int, bool);
-
-bool hasLegalMoves(gameState);
-
-bool isCheckMate(gameState);
-
-bool isStaleMate(gameState);
-
-
-
 //check if a specific piece is checking a King of color=king_color
 bool isCheckingKing(gameState state, Cell target_cell, char king_color) {
 

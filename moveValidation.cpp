@@ -135,7 +135,8 @@ bool validatePawn(const boardArray_t &board, const gameState &state, int startCe
 // this function is called every time when a pawn is selected by a user. 
 // another section of code should be written in main() (or in executeMove() ?) such that, 
 // if isPawnPromotion, then *executes the actual promotion*
-bool isPawnPromotion(const boardArray_t &board, const gameState &state, int startCell[2], int endCell[2]) {
+bool isPawnPromotion(const gameState &state, int startCell[2], int endCell[2]) {
+	const boardArray_t board = state.board;
 	bool pawnCanMove = validatePawn(board, state, startCell, endCell);
 	if (state.isWhiteTurn) {
 		if (pawnCanMove == true && endCell[1] == 7 && board[startCell[0]][startCell[1]].cellOwner == 'w') {
@@ -156,7 +157,8 @@ bool validateQueen(const boardArray_t &board, int startCell[2], int endCell[2]){
 	return (rook == true || bishop == true);
 }
 
-bool doesCellHaveMoves(const boardArray_t &board, const gameState &state, int startCell[2], int endCell[2]) {
+bool doesCellHaveMoves(const gameState &state, int startCell[2], int endCell[2]) {
+	const boardArray_t board = state.board;
 	string piece = state.board[startCell[0]][startCell[1]].pieceName;
 
 	if (piece == "Knight")
@@ -177,7 +179,7 @@ bool doesCellHaveMoves(const boardArray_t &board, const gameState &state, int st
 
 // the main validation function
 // this function is called whenever user attempts to execute a move
-bool isMoveLegal(const boardArray_t &board, const gameState &state, int startCell[2], int endCell[2]) {
+bool isMoveLegal(const gameState &state, int startCell[2], int endCell[2]) {
 	if (state.board[startCell[0]][startCell[1]].isEmpty)
 		return false;
 	if (!isWithinBounds(startCell, endCell))
@@ -191,21 +193,22 @@ bool isMoveLegal(const boardArray_t &board, const gameState &state, int startCel
 	if (state.board[startCell[0]][startCell[1]].cellOwner == state.board[endCell[0]][endCell[1]].cellOwner)
 		return false;
 
-	return doesCellHaveMoves(board, state, startCell, endCell);
+	return doesCellHaveMoves(state, startCell, endCell);
 }
 
 // this function is called by every cell on the board every time user selects a piece
 // when getPossibleMoves == true for a cell, a dot appears on the cell
 // returns validDestinations
 std::vector <std::array<int, 2>>
- getPossibleMoves(const boardArray_t &board, const gameState &state, int startCell[2]) {
+ getPossibleMoves(const gameState &state, int startCell[2]) {
+	const boardArray_t board = state.board;
 	std::vector <std::array <int, 2>> validDestinations;
 	
 	for (int x = 0; x < 8; x++) {
 		for (int y = 0; y < 8; y++) {
 			int candidateCell[2] = {x, y};
 
-			if (isMoveLegal(board, state, startCell, candidateCell))
+			if (isMoveLegal(state, startCell, candidateCell))
 				validDestinations.push_back({x, y});
 		}
 	}

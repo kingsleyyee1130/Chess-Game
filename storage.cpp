@@ -50,11 +50,12 @@ string gameStateToString(const gameState& state) {
     ss << "\"moveCount\":" << state.moveCount << ",";
     ss << "\"isWhiteTurn\":" << (state.isWhiteTurn ? "true" : "false") << ",";
     ss << "\"enPassantTarget\":\"" << state.enPassantTarget << "\",";
+    ss << "\"isInCheck\":" << (state.isInCheck ? "true" : "false") << ",";
     ss << "\"whiteCanCastleKS\":" << (state.whiteCanCastleKS ? "true" : "false") << ",";
     ss << "\"whiteCanCastleQS\":" << (state.whiteCanCastleQS ? "true" : "false") << ",";
     ss << "\"blackCanCastleKS\":" << (state.blackCanCastleKS ? "true" : "false") << ",";
     ss << "\"blackCanCastleQS\":" << (state.blackCanCastleQS ? "true" : "false") << ",";
-    ss << "\"lastMoveText\":\"" << state.lastMoveText << "\",";
+    ss << "\"moveHistory\":\"" << state.moveHistory << "\",";
     ss << "\"board\":" << boardToString(state.board);
     ss << "}";
     return ss.str();
@@ -126,8 +127,9 @@ gameState parseGameState(const string& json) {
     if (!moveStr.empty()) state.moveCount = stoi(moveStr);
 
     state.isWhiteTurn = (getValue("isWhiteTurn") == "true");
+    state.isInCheck = (getValue("isInCheck") == "true");
     state.enPassantTarget = getValue("enPassantTarget");
-    state.lastMoveText = getValue("lastMoveText");
+    state.moveHistory = getValue("movHistory");
     state.whiteCanCastleKS = (getValue("whiteCanCastleKS") == "true");
     state.whiteCanCastleQS = (getValue("whiteCanCastleQS") == "true");
     state.blackCanCastleKS = (getValue("blackCanCastleKS") == "true");
@@ -422,7 +424,7 @@ void displayGameState(const gameState& state) {
     cout << "\n=== GAME STATE ===" << endl;
     cout << "Move: " << state.moveCount << endl;
     cout << "Turn: " << (state.isWhiteTurn ? "White" : "Black") << endl;
-    cout << "Last Move: " << state.lastMoveText << endl;
+    cout << "Move History: " << state.moveHistory << endl;
     cout << "En Passant: " << state.enPassantTarget << endl;
     cout << "Castling: WK=" << (state.whiteCanCastleKS ? "Y" : "N")
         << " WQ=" << (state.whiteCanCastleQS ? "Y" : "N")

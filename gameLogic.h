@@ -16,6 +16,7 @@
 struct gameState {
 	boardArray_t board;
 	bool isWhiteTurn = true;
+	bool isInCheck = false;
 
 	// defaulting to no 'en passant target' at game start
 	// using cellName format from chessBoardList.h
@@ -28,8 +29,8 @@ struct gameState {
 	bool blackCanCastleQS = true;
 
 	// description of the last move made
-	string lastMoveText = "Game started"; // or "White moved Pawn to e4"
 	int moveCount = 1;
+	string moveHistory = "";
 };
 
 struct matchHistory;

@@ -12,6 +12,8 @@ using namespace std;
 
 vector<gameState> history;
 
+
+
 // ===== CONVERT CELL TO STRING =====
 string cellToString(const Cell& cell) {
     stringstream ss;
@@ -212,17 +214,19 @@ gameState parseGameState(const string& json) {
     return state;
 }
 
-// ===== 1. SAVE GAME STATE (OVERWRITE) =====
-void saveGameState(const gameState& state, const string& filename) {
-    ofstream file(filename);
+// ===== 1. SAVE File Name =====
+void saveFileName(const string& filename) {
+    ofstream file("File_of_file.txt", ios::app);
     if (file.is_open()) {
-        file << gameStateToString(state);
+        file << filename;
         file.close();
-        cout << "Game saved to " << filename << endl;
     }
-    else {
-        cout << "Error: Cannot save to " << filename << endl;
-    }
+}
+
+// creat a file name
+void creatFile(string whitePlayer, string blackPlayer){
+    string fileName = whitePlayer + "_VS_" + blackPlayer + ".txt";
+    saveFileName(fileName);
 }
 
 // ===== 2. SAVE MOVE TO HISTORY (APPEND) =====
@@ -233,18 +237,11 @@ void saveMoveToHistory(const gameState& state, const string& filename) {
         file.close();
         cout << "Move " << state.moveCount << " saved to history" << endl;
     }
-    else {
-        cout << "Error: Cannot save to " << filename << endl;
-    }
 }
 
 // ===== 3. LOAD LATEST GAME STATE (FOR UNDO) =====
 bool loadLatestGameState(gameState& state, const string& filename) {
     ifstream file(filename);
-    if (!file.is_open()) {
-        cout << "Error: Cannot open " << filename << endl;
-        return false;
-    }
 
     vector<string> lines;
     string line;
@@ -255,23 +252,13 @@ bool loadLatestGameState(gameState& state, const string& filename) {
     }
     file.close();
 
-    if (lines.empty()) {
-        cout << "No data found!" << endl;
-        return false;
-    }
-
     state = parseGameState(lines.back());
-    cout << "Loaded latest move #" << state.moveCount << " from " << filename << endl;
     return true;
 }
 
 // ===== 4. LOAD SPECIFIC MOVE FROM HISTORY =====
 bool loadMoveFromHistory(gameState& state, const string& filename, int moveNumber) {
     ifstream file(filename);
-    if (!file.is_open()) {
-        cout << "Error: Cannot open " << filename << endl;
-        return false;
-    }
 
     string line;
     while (getline(file, line)) {
@@ -305,18 +292,11 @@ bool loadMoveFromHistory(gameState& state, const string& filename, int moveNumbe
         }
     }
     file.close();
-
-    cout << "Move " << moveNumber << " not found!" << endl;
-    return false;
 }
 
 // ===== 5. DELETE LAST MOVE FROM FILE (FOR UNDO) =====
 bool deleteLastMoveFromFile(const string& filename) {
     ifstream file(filename);
-    if (!file.is_open()) {
-        cout << "Error: Cannot open " << filename << endl;
-        return false;
-    }
 
     vector<string> lines;
     string line;
@@ -328,7 +308,7 @@ bool deleteLastMoveFromFile(const string& filename) {
     file.close();
 
     if (lines.empty()) {
-        cout << "No moves to delete!" << endl;
+        cout << "No moves to undo!" << endl;
         return false;
     }
 
@@ -337,26 +317,19 @@ bool deleteLastMoveFromFile(const string& filename) {
 
     // Write back all lines except the last one
     ofstream outFile(filename, ios::trunc);
-    if (!outFile.is_open()) {
-        cout << "Error: Cannot write to " << filename << endl;
-        return false;
-    }
 
     for (const string& l : lines) {
         outFile << l << "\n";
     }
     outFile.close();
 
-    cout << "Last move deleted. " << lines.size() << " moves remaining." << endl;
+    cout << "Undo successfull. " << lines.size() << " moves now." << endl;
     return true;
 }
 
 // ===== 6. GET TOTAL MOVES IN FILE =====
 int getTotalMovesInFile(const string& filename) {
     ifstream file(filename);
-    if (!file.is_open()) {
-        return 0;
-    }
 
     int count = 0;
     string line;
@@ -374,7 +347,6 @@ int getTotalMovesInFile(const string& filename) {
 void clearHistory(const string& filename) {
     ofstream file(filename, ios::trunc);
     file.close();
-    cout << "History cleared!" << endl;
 }
 
 // ===== 8. RECORD STATE (BEFORE MOVE) =====
@@ -401,80 +373,25 @@ bool undoMove(gameState& state, vector<gameState>& history, const string& filena
     return true;
 }
 
-// ===== 10. DISPLAY BOARD =====
-void displayBoard(const boardArray_t& board) {
-    cout << "  a b c d e f g h" << endl;
-    for (int row = 0; row < 8; row++) {
-        cout << 8 - row << " ";
-        for (int col = 0; col < 8; col++) {
-            if (board[row][col].isEmpty) {
-                cout << ". ";
-            }
-            else {
-                cout << board[row][col].pieceSymbol << " ";
-            }
-        }
-        cout << 8 - row << endl;
-    }
-    cout << "  a b c d e f g h" << endl;
+// Load specific move
+void viewHistory(const string& filename,gameState& state){
+    gameState move2State;
+    for(int i = 1; i < state.moveCount; i++){
+        loadMoveFromHistory(move2State, filename, i);
 }
 
-// ===== 11. DISPLAY GAME STATE =====
-void displayGameState(const gameState& state) {
-    cout << "\n=== GAME STATE ===" << endl;
-    cout << "Move: " << state.moveCount << endl;
-    cout << "Turn: " << (state.isWhiteTurn ? "White" : "Black") << endl;
-    cout << "Move History: " << state.moveHistory << endl;
-    cout << "En Passant: " << state.enPassantTarget << endl;
-    cout << "Castling: WK=" << (state.whiteCanCastleKS ? "Y" : "N")
-        << " WQ=" << (state.whiteCanCastleQS ? "Y" : "N")
-        << " BK=" << (state.blackCanCastleKS ? "Y" : "N")
-        << " BQ=" << (state.blackCanCastleQS ? "Y" : "N") << endl;
-    displayBoard(state.board);
-}
-
-// ===== 12. DISPLAY FILE CONTENTS =====
-void displayFileContents(const string& filename) {
+// Direct read all file and display the choice
+void showAllFile(const string& filename) {
     ifstream file(filename);
-    if (!file.is_open()) {
-        cout << "File not found or empty!" << endl;
-        return;
-    }
-
-    cout << "\n=== FILE CONTENTS (" << filename << ") ===" << endl;
     string line;
-    int lineNum = 1;
+    
+    cout << "\n=== FILE LIST ===" << endl;
     while (getline(file, line)) {
         if (!line.empty()) {
-            // Extract move number for display
-            size_t numPos = line.find("\"moveCount\"");
-            if (numPos != string::npos) {
-                numPos = line.find(":", numPos);
-                if (numPos != string::npos) {
-                    numPos++;
-                    while (numPos < line.length() && (line[numPos] == ' ' || line[numPos] == '\t')) {
-                        numPos++;
-                    }
-                    string numStr;
-                    while (numPos < line.length() && isdigit(line[numPos])) {
-                        numStr += line[numPos];
-                        numPos++;
-                    }
-                    cout << "Line " << lineNum << ": Move #" << numStr << endl;
-                }
-            }
+            cout << i << ".  " << line << endl;
+            i++;
         }
-        lineNum++;
     }
     file.close();
-    cout << "Total lines: " << lineNum - 1 << endl;
 }
 
-// Load specific move
-void viewHistory(const string& filename){
-    int historyNum;
-    cout << "which move you want to view? ";
-    cin >> historyNum;
-    gameState move2State;
-    loadMoveFromHistory(move2State, filename, historyNum);
-}

@@ -12,8 +12,6 @@ using namespace std;
 
 vector<gameState> history;
 
-
-
 // ===== CONVERT CELL TO STRING =====
 string cellToString(const Cell& cell) {
     stringstream ss;
@@ -131,7 +129,7 @@ gameState parseGameState(const string& json) {
     state.isWhiteTurn = (getValue("isWhiteTurn") == "true");
     state.isInCheck = (getValue("isInCheck") == "true");
     state.enPassantTarget = getValue("enPassantTarget");
-    state.moveHistory = getValue("movHistory");
+    state.moveHistory = getValue("moveHistory");
     state.whiteCanCastleKS = (getValue("whiteCanCastleKS") == "true");
     state.whiteCanCastleQS = (getValue("whiteCanCastleQS") == "true");
     state.blackCanCastleKS = (getValue("blackCanCastleKS") == "true");
@@ -218,13 +216,13 @@ gameState parseGameState(const string& json) {
 void saveFileName(const string& filename) {
     ofstream file("File_of_file.txt", ios::app);
     if (file.is_open()) {
-        file << filename;
+        file << filename << '\n';
         file.close();
     }
 }
 
-// creat a file name
-void creatFile(string whitePlayer, string blackPlayer){
+// create a file name
+void createFile(string whitePlayer, string blackPlayer){
     string fileName = whitePlayer + "_VS_" + blackPlayer + ".txt";
     saveFileName(fileName);
 }
@@ -374,17 +372,19 @@ bool undoMove(gameState& state, vector<gameState>& history, const string& filena
 }
 
 // Load specific move
-void viewHistory(const string& filename,gameState& state){
+void viewHistory(const string& filename, gameState& state) {
     gameState move2State;
-    for(int i = 1; i < state.moveCount; i++){
+    for (int i = 1; i < state.moveCount; i++) {
         loadMoveFromHistory(move2State, filename, i);
+    }
 }
 
 // Direct read all file and display the choice
-void showAllFile(const string& filename) {
-    ifstream file(filename);
+int showAllFile() {
+    ifstream file("File_of_file.txt");
     string line;
-    
+    int i = 1;
+
     cout << "\n=== FILE LIST ===" << endl;
     while (getline(file, line)) {
         if (!line.empty()) {
@@ -393,5 +393,42 @@ void showAllFile(const string& filename) {
         }
     }
     file.close();
+    i--;
+    return i;
 }
 
+// connect user choice to filename for game resume
+string readFileName(int choice) {
+    ifstream file("File_of_file.txt");
+    string line;
+    string filename;
+
+    for (int i = 0;i <= choice;i++) {
+        getline(file, line);
+            if (!line.empty())
+                filename = line;
+    }
+    file.close();
+
+    return filename;
+}
+
+// to access the last state of a saved game
+bool accessLastState(const string& filename, gameState& state) {
+    ifstream file(filename);
+
+    vector<string> lines;
+    string line;
+    while (getline(file, line)) {
+        if (!line.empty()) {
+            lines.push_back(line);
+        }
+    }
+
+    if (!lines.empty()) {
+        state = parseGameState(lines.back());
+        return true;
+    }
+
+    return false;
+}

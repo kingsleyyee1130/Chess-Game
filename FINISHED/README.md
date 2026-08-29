@@ -1,1 +1,3 @@
+TOTAL FUNCTION: 
 
+gameFlow: 20

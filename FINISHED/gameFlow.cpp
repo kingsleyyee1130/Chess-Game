@@ -8,6 +8,7 @@
 #include <string>
 #include <conio.h>
 
+#include "gameFlow.h"
 #include "gameLogic.h"
 #include "storage.h"
 
@@ -55,13 +56,12 @@ void clearScreen() {
 #endif
 }
 
-// Stops console for next enter input
+//NEEDDO// Stops console for next enter input
 void waitForEnter() {
-    cin.ignore(1000, '\n');
     getline(cin, dummy_string);
 }
 
-// Generate text centered in a specified length, surrounded by character of choice defaulted to space
+//NEEDDO// Generate text centered in a specified length, surrounded by character of choice defaulted to space
 string centeredString(string text, int length, char space = ' ') {
 
     int left  = length/2 - floor(text.length()/2.0);
@@ -70,8 +70,8 @@ string centeredString(string text, int length, char space = ' ') {
     return string(left, space) + text + string(right, space);
 }
 
-// Returns intended num between max and min, returns 999 if not
-int getMenuChoice(int minimum, int maximum, const string error_text = "") {
+//NEEDDO// Returns intended num between max and min, returns 999 if not
+int getChoice(int minimum, int maximum, const string error_text = "") {
     int choice;
     
     if (!error_text.empty())
@@ -79,14 +79,16 @@ int getMenuChoice(int minimum, int maximum, const string error_text = "") {
     cout << "\n>>";
     cin >> choice;
 
-    if (cin.fail()) {
-        cin.clear();
-        cin.ignore(1000, '\n');
-    }
-    else if (choice >= minimum && choice <= maximum)
-        return choice;  
+    bool input_err = cin.fail();
+
+    if (input_err) cin.clear();
+
+    cin.ignore(1000, '\n');
     
-    return 999; 
+    if (input_err || choice < minimum || choice > maximum) 
+        return 999;  
+    
+    return choice; 
 }
 
 
@@ -108,10 +110,10 @@ void showWelcomeScreen() {
 
     cout<<"                   Press ENTER to Continue\n";
 
-    getline(cin, dummy_string);
+    waitForEnter();
 } 
 
-// Main menu, returns chosen option
+//NEEDDO// Main menu, returns chosen option
 int showMainMenu() {
     int input;
     string error;
@@ -128,7 +130,7 @@ int showMainMenu() {
 
         cout<<"==============================================================\n";
 
-        input = getMenuChoice(1,3,error);
+        input = getChoice(1,3,error);
         if(input==999) 
             error = "-- Please Enter only 1~3 --";
         else
@@ -151,8 +153,7 @@ void exitScreen() {
 }
 
 // Generic popup message
-void messageBox(string title,string msg)
-{
+void messageBox(string title,string msg) {
     clearScreen();
 
     cout<< string(VIEW_WIDTH, '=')<<"\n";
@@ -164,7 +165,7 @@ void messageBox(string title,string msg)
     waitForEnter();
 }
 
-// Print board with coordinate alphanumbers
+//NEEDDO// Print board with coordinate alphanumbers
 void printPlayBoard(const gameState& state, int indent=8) {
     SetConsoleOutputCP(CP_UTF8);
     auto board = state.board;
@@ -225,14 +226,15 @@ void displayPlayView (const gameState& state, bool moving = false) {
             cout << string(VIEW_WIDTH, '-') << "\n";
         }
         cout << " W A S D  : Move Cursor\n";
-        cout << " E        : Select Piece\n";
         if (!moving){
-        cout << " Q        : Save Game\n";
+        cout << " E        : Select Piece\n";
+        cout << " Q        : Save and Quit\n";
         cout << " U        : Undo Move\n";
         cout << " X        : Resign\n";
         cout << " P        : Draw\n";
         }
         else {
+        cout << " E        : Select Move\n";
         cout << " C        : Cancel Selection\n";
         }
     }
@@ -268,7 +270,7 @@ void winnerScreen(const gameState& state) {
     waitForEnter();
 }
 
-// Result screen when someone drawd (stalemate screen included)
+//NEEDDO// Result screen when someone drawd (stalemate screen included)
 void drawScreen(const gameState& state, bool stalemate=false) {
     string display_text = (stalemate ? "STALEMATE" : "DRAW");
 
@@ -286,7 +288,7 @@ void drawScreen(const gameState& state, bool stalemate=false) {
     waitForEnter();
 }
 
-// Result screen someone resign
+//NEEDDO// Result screen someone resign
 void resignScreen(const gameState& state) {
     string display_text;
     if (state.winner == state.whitePlayer)
@@ -312,7 +314,125 @@ void resignScreen(const gameState& state) {
 
 //============ GAME FLOW FUNCTIONS ============//
  
-// Move cursor printed on board
+// Input validation for Quit Game (inside game loop)
+void quitConfirmation(gameState& state) {
+    string error_text = "";
+    int quit_rspd;
+    while (true){ 
+        clearScreen();
+        displayPlayView(state);
+        cout << "Sure to Save and Quit? \n1.Yes\n2.No";
+        quit_rspd = getChoice(1,2, error_text);
+        if (quit_rspd == 999)
+            error_text = ERROR_TEXT_FOR_2;
+        else if (quit_rspd == 1) { 
+            error_text = "";
+            state.gameReason = "Quit";
+            break;}
+        else if (quit_rspd == 2){
+            error_text = "";
+            cout << "Game Continues...";
+            waitForEnter();
+            break;}
+    }
+}
+
+// Input validation for Resign Game (inside game loop)
+void resignConfirmation(gameState& state) {
+    string error_text = "";
+    int resign_rspd;
+    while (true){ 
+        clearScreen();
+        displayPlayView(state);
+        cout << "Sure to Resign? \n1.Yes\n2.No";
+        resign_rspd = getChoice(1,2, error_text);
+        if (resign_rspd == 999)
+            error_text = ERROR_TEXT_FOR_2;
+        else if (resign_rspd == 1) { 
+            error_text = "";
+            state.winner = (state.isWhiteTurn ? state.blackPlayer : state.whitePlayer);
+            state.gameReason = "Resigned";
+            break;}
+        else if (resign_rspd == 2){
+            error_text = "";
+            cout << "Resign Canceled...";
+            waitForEnter();
+            break;}
+    }
+}
+
+// Input validation for Undo Game (inside game loop)
+void undoConfirmation(gameState& state) {
+    string error_text = "";
+    int undo_rspd;
+    while (true){ 
+        clearScreen();
+        displayPlayView(state);
+        cout << "Sure to Undo? \n1.Yes\n2.No";
+        undo_rspd = getChoice(1,2, error_text);
+        if (undo_rspd == 999)
+            error_text = ERROR_TEXT_FOR_2;
+        else if (undo_rspd == 1) {
+            error_text = "";
+            undoMove(state);
+            break;}
+        else if (undo_rspd == 2) {
+            error_text = "";
+            cout << "Undo Canceled...";
+            waitForEnter();
+            break;}
+    }
+}
+
+// Input validation for Draw Game (inside game loop)
+void drawConfirmation(gameState& state) {
+    string error_text = "";
+    int draw_rspd;
+    int step = 0;
+    string player1 = (state.isWhiteTurn ? state.whitePlayer : state.blackPlayer);
+    string player2 = (state.isWhiteTurn ? state.blackPlayer : state.whitePlayer);
+    while (true){ // loop for draw confirmation
+        if (step%2 == 0){
+            clearScreen();
+            displayPlayView(state);
+            step ++;
+        }
+        if (step==1){
+            cout << player1 << ": Sure to Draw? \n1.Yes\n2.No";
+            draw_rspd = getChoice(1,2, error_text);
+            if (draw_rspd == 999){
+                error_text = ERROR_TEXT_FOR_2;
+                step -= 1;}
+            else if (draw_rspd == 1) {
+                error_text = "";
+                step ++;}
+            else if (draw_rspd == 2){
+                error_text = "";
+                cout << "Draw Canceled...";
+                waitForEnter();
+                break;}
+        }
+        if (step==3){
+            cout << player2 << ": Sure to Draw? \n1.Yes\n2.No";
+            int draw_rspd = getChoice(1,2, error_text);
+            if (draw_rspd == 999){
+                error_text = ERROR_TEXT_FOR_2;
+                step -= 1;}
+            else if (draw_rspd == 1) {
+                error_text = "";
+                state.winner = "None";
+                state.gameReason = "Drawed";
+                break;}
+            else if (draw_rspd == 2){
+                error_text = "";
+                cout << player2 << " refused to draw:\n"<< "Draw Canceled...";
+                waitForEnter();
+                break;}
+        }
+    }
+}
+
+//NEEDDO// Move cursor printed on board
 void moveCursor(gameState& state, char key){
     key = toupper(key);
     int& cursorCol = state.curserPos[0];
@@ -342,7 +462,7 @@ void moveCursor(gameState& state, char key){
     }
 }
 
-// Loop when moving a selected piece
+//NEEDDO// Loop when moving a selected piece
 void makeMove(gameState& state) {
 
     char current_color = (state.isWhiteTurn ? 'w' : 'b');
@@ -411,7 +531,7 @@ void makeMove(gameState& state) {
                 << "4.Rook\n"
                 << "5.No Promotion\n"
                 << "Please choose a piece to promote to (1~5)";
-            int promo_code = getMenuChoice(1, 5, promo_error);
+            int promo_code = getChoice(1, 5, promo_error);
             if (promo_code == 999) {
                 promo_error = "-- Please Enter Number Between 1~5 --";
                 continue;}
@@ -447,10 +567,9 @@ void makeMove(gameState& state) {
     state.curserPos[1] = move_state.curserPos[1];
 }
 
-// Loop when playing game (seleceting piece)
+//NEEDDO// Loop when playing game (seleceting piece)
 void gameLoop(gameState& state) {
 
-    string error_text = ""; //use for displaying error text when user input wrong
     char game_rspd;
     while (state.gameReason == "")
     {
@@ -474,112 +593,22 @@ void gameLoop(gameState& state) {
                 } 
                 break;}
 
-            case 'Q': { //Quit game
-                while (true){ //loop for quit confirmation
-                    clearScreen();
-                    displayPlayView(state);
-                    cout << "Sure to Save and Quit? \n1.Yes\n2.No";
-                    int quit_rspd = getMenuChoice(1,2, error_text);
-                    if (quit_rspd == 999)
-                        error_text = ERROR_TEXT_FOR_2;
-                    else if (quit_rspd == 1) { 
-                        error_text = "";
-                        state.gameReason = "Quit";
-                        break;}
-                    else if (quit_rspd == 2){
-                        error_text = "";
-                        cout << "Game Continues...";
-                        waitForEnter();
-                        break;}
-                }
-            break;}
+            case 'Q':  //Quit game
+                quitConfirmation(state);
+                break;
 
-            case 'X': { //resign
-                while (true){ //loop for resign confirmation
-                    clearScreen();
-                    displayPlayView(state);
-                    cout << "Sure to Resign? \n1.Yes\n2.No";
-                    int resign_rspd = getMenuChoice(1,2, error_text);
-                    if (resign_rspd == 999)
-                        error_text = ERROR_TEXT_FOR_2;
-                    else if (resign_rspd == 1) { 
-                        error_text = "";
-                        state.winner = (state.isWhiteTurn ? state.blackPlayer : state.whitePlayer);
-                        state.gameReason = "Resigned";
-                        break;}
-                    else if (resign_rspd == 2){
-                        error_text = "";
-                        cout << "Resign Canceled...";
-                        waitForEnter();
-                        break;}
-                }
-            break;}
+            case 'X':  //resign
+                resignConfirmation(state);
+                break;
 
-            case 'U':{ //undo
-                while (true){ //loop for undo confirmation
-                    clearScreen();
-                    displayPlayView(state);
-                    cout << "Sure to Undo? \n1.Yes\n2.No";
-                    int undo_rspd = getMenuChoice(1,2, error_text);
-                    if (undo_rspd == 999)
-                        error_text = ERROR_TEXT_FOR_2;
-                    else if (undo_rspd == 1) {
-                        error_text = "";
-                        undoMove(state);
-                        break;}
-                    else if (undo_rspd == 2) {
-                        error_text = "";
-                        cout << "Undo Canceled...";
-                        waitForEnter();
-                        break;}
-                }
-            break;}
+            case 'U': //undo
+                undoConfirmation(state);
+                break;
 
-            case 'P':{ //draw
-                int step = 0;
-                string player1 = (state.isWhiteTurn ? state.whitePlayer : state.blackPlayer);
-                string player2 = (state.isWhiteTurn ? state.blackPlayer : state.whitePlayer);
-                while (true){ // loop for draw confirmation
-                    if (step%2 == 0){
-                        clearScreen();
-                        displayPlayView(state);
-                        step ++;
-                    }
-                    if (step==1){
-                        cout << player1 << ": Sure to Draw? \n1.Yes\n2.No";
-                        int draw_rspd = getMenuChoice(1,2, error_text);
-                        if (draw_rspd == 999){
-                            error_text = ERROR_TEXT_FOR_2;
-                            step -= 1;}
-                        else if (draw_rspd == 1) {
-                            error_text = "";
-                            step ++;}
-                        else if (draw_rspd == 2){
-                            error_text = "";
-                            cout << "Draw Canceled...";
-                            waitForEnter();
-                            break;}
-                    }
-                    if (step==3){
-                        cout << player2 << ": Sure to Draw? \n1.Yes\n2.No";
-                        int draw_rspd = getMenuChoice(1,2, error_text);
-                        if (draw_rspd == 999){
-                            error_text = ERROR_TEXT_FOR_2;
-                            step -= 1;}
-                        else if (draw_rspd == 1) {
-                            error_text = "";
-                            state.winner = "None";
-                            state.gameReason = "Drawed";
-                            break;}
-                        else if (draw_rspd == 2){
-                            error_text = "";
-                            cout << player2 << " refused to draw:\n"<< "Draw Canceled...";
-                            waitForEnter();
-                            break;}
-                    }
-                }
-            break;}
-        } 
+            case 'P': //draw
+                drawConfirmation(state);
+                break;
+        }
     }
     // game Finished, printing last move
     if (state.gameReason=="Checkmated" || state.gameReason=="Stalemated") {
@@ -623,7 +652,7 @@ void continueGame() {
         if (step == 1) {
             cout << "Choose a previous game to resume (eg. 1, 2, 3)\n";
             cout << "Enter 0 to Exit";
-            choice = getMenuChoice(0, maximum, error_text);
+            choice = getChoice(0, maximum, error_text);
             if (choice == 999){
                 error_text = "-- Please Only Enter Number from 0 to " + to_string(maximum) + " --";
                 step--;
@@ -643,14 +672,14 @@ void continueGame() {
             }
             step++;
         }     
-         
+
         if (step == 3) {
             //see if game was finished because checkmated/stalemated, ask if want to undo and continue game
             if (state.gameReason=="Checkmated" || state.gameReason=="Stalemated") {
                 cout << "\nThis game was finished: " << state.gameReason << "\n";
                 cout << "Undo to right before getting " << state.gameReason << " and continue game?\n1.Yes\n2.No";
                 
-                choice = getMenuChoice(1, 2, error_text);
+                choice = getChoice(1, 2, error_text);
                 if (choice == 999) {
                     error_text = ERROR_TEXT_FOR_2;
                     step--;
@@ -676,7 +705,7 @@ void continueGame() {
             break;
         }
     }
-    
+
     gameLoop(state);
 }
 
@@ -686,19 +715,21 @@ void startNewGame() {
     string blackPlayer;
     gameState new_state = getNewGameState();
 
-    cin.ignore(1000,'\n');
     int step = 0;
     while (true) {
         clearScreen();
         if (step%2==0){
             cout << string(VIEW_WIDTH, '-') << '\n';
             cout << centeredString("START NEW GAME", VIEW_WIDTH) << '\n';
-            cout << string(VIEW_WIDTH, '-') << "\n\n";
+            cout << string(VIEW_WIDTH, '-') << '\n';
+            cout << centeredString("(Enter \"\\QUIT\" to quit)", VIEW_WIDTH) << "\n\n";
             step++;
         }
         if (step == 1){
             cout<<"White Player Name : ";
             getline(cin,whitePlayer);
+            if (whitePlayer == "\\QUIT")
+                return;
             if (hasSpace(whitePlayer)){
                 cout << "-- No Spaces are allowed in name --\n";
                 cout << "Please reenter your name...";
@@ -715,6 +746,8 @@ void startNewGame() {
         if (step == 3){
             cout<<"Black Player Name : ";
             getline(cin,blackPlayer);
+            if (blackPlayer == "\\QUIT")
+                return;
             if (hasSpace(blackPlayer)){
                 cout << "-- No Spaces are allowed in name --\n";
                 cout << "Please reenter your name...";

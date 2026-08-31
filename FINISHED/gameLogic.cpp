@@ -16,7 +16,7 @@ using std::cout, std::string, std::array, std::to_string;
 
 string col_alphabet = "abcdefgh";
 array<string, 9> chess_names = {"Rook", "Knight", "Bishop", "Queen", "King", "Bishop", "Knight", "Rook", "Pawn"};
-array<string, 9> chess_symbol_black = {"\033[38;5;22m♜\033[0m", "\033[38;5;22m♞\033[0m", "\033[38;5;22m♝\033[0m", "\033[38;5;22m♛\033[0m", "\033[38;5;22m♚\033[0m", "\033[38;5;22m♝\033[0m", "\033[38;5;22m♞\033[0m", "\033[38;5;22m♜\033[0m", "\033[38;5;28m♙\033[0m"};
+array<string, 9> chess_symbol_black = {"\033[38;5;172m♜\033[0m", "\033[38;5;172m♞\033[0m", "\033[38;5;172m♝\033[0m", "\033[38;5;172m♛\033[0m", "\033[38;5;172m♚\033[0m", "\033[38;5;172m♝\033[0m", "\033[38;5;172m♞\033[0m", "\033[38;5;172m♜\033[0m", "\033[38;5;172m♙\033[0m"};
 array<string, 9> chess_symbol_white = {"\033[38;5;230m♜\033[0m", "\033[38;5;230m♞\033[0m", "\033[38;5;230m♝\033[0m", "\033[38;5;230m♛\033[0m", "\033[38;5;230m♚\033[0m", "\033[38;5;230m♝\033[0m", "\033[38;5;230m♞\033[0m", "\033[38;5;230m♜\033[0m", "\033[38;5;230m♙\033[0m"};
 
 
@@ -91,7 +91,7 @@ void executeMove(gameState& state, int startCell[2], int endCell[2]) {
 	}
 
 	//check for castling
-	if (startSquare.pieceName=="King" && endSquare.pieceName=="Rook") //validation were done in selection time
+	if (startSquare.pieceName=="King" && endSquare.pieceName=="Rook" && startSquare.cellOwner == endSquare.cellOwner) //validation were done in selection time
 		{
 		int kingxPos, rookxPos;
 		if (endSquare.coordinate[0] > startSquare.coordinate[0]) { //setting king&rook x positions since same for both colors

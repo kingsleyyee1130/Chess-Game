@@ -17,11 +17,6 @@ string dummy;
 
 // to check if a coordinate is within chess board
 bool isWithinBounds(int startCell[2], int endCell[2]) {
-	// initializing
-	bool startXTrue = false;
-	bool startYTrue = false;
-	bool endXTrue = false;
-	bool endYTrue = false;
 
 	return (startCell[0] >= 0 && startCell[0] < 8
 		&& startCell[1] >= 0 && startCell[1] < 8

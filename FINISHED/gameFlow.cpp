@@ -225,17 +225,17 @@ void displayPlayView (const gameState& state, bool moving = false) {
             cout << centeredString("CHECK!!", VIEW_WIDTH) << "\n";
             cout << string(VIEW_WIDTH, '-') << "\n";
         }
-        cout << " W A S D  : Move Cursor\n";
+        cout << " WASD / Arrows  : Move Cursor\n";
         if (!moving){
-        cout << " E        : Select Piece\n";
-        cout << " Q        : Save and Quit\n";
-        cout << " U        : Undo Move\n";
-        cout << " X        : Resign\n";
-        cout << " P        : Draw\n";
+        cout << " E    / Enter   : Select Piece\n";
+        cout << " Q              : Save and Quit\n";
+        cout << " U              : Undo Move\n";
+        cout << " X              : Resign\n";
+        cout << " P              : Draw\n";
         }
         else {
-        cout << " E        : Select Move\n";
-        cout << " C        : Cancel Selection\n";
+        cout << " E    / Enter   : Select Move\n";
+        cout << " C              : Cancel Selection\n";
         }
     }
     else if (state.gameReason=="Checkmated") {
@@ -247,6 +247,9 @@ void displayPlayView (const gameState& state, bool moving = false) {
         cout << centeredString("STALEMATE!!", VIEW_WIDTH) << "\n"; 
     }
     cout << string(VIEW_WIDTH, '-') << std::endl;
+
+    if (state.gameReason=="Checkmated" || state.gameReason=="Stalemated")
+        cout << "Press Enter to Continue...";
 }
 
 // Result screen when someone win
@@ -440,21 +443,25 @@ void moveCursor(gameState& state, char key){
 
     switch(key)
     {
+        case 72 : // numbers are ASCII codes for arrow keys that follows after lead byte
         case 'W':
             if(cursorRow < 7)
                 cursorRow++;
             break;
 
+        case 80 :
         case 'S':
             if(cursorRow > 0)
                 cursorRow--;
             break;
 
+        case 75 :
         case 'A':
             if(cursorCol > 0)
                 cursorCol--;
             break;
 
+        case 77 :
         case 'D':
             if(cursorCol < 7)
                 cursorCol++;
@@ -480,7 +487,7 @@ void makeMove(gameState& state) {
         if (pieceHasMoves) break;
     }
 
-    char move_rspd; // inputs in loop
+    unsigned char move_rspd; // inputs in loop
     bool chosen = false; // loop bools
     bool moving = true; 
     bool promoting = false;
@@ -500,6 +507,8 @@ void makeMove(gameState& state) {
                 moving=false;
                 break;
 
+            case 224: // detecting lead byte for arrow keys
+                move_rspd = _getch(); // striping arrow keys input after the lead byte
             case 'W':
             case 'A':
             case 'S':
@@ -507,6 +516,7 @@ void makeMove(gameState& state) {
                 moveCursor(move_state, move_rspd);
                 break;
 
+            case '\r': // this is the input from _getch() when 'enter' is pressed (ASCII code 13)
             case 'E': 
                 if (move_state.board[move_state.curserPos[0]][move_state.curserPos[1]].hasMoves){
                     moving = false;
@@ -535,7 +545,7 @@ void makeMove(gameState& state) {
             if (promo_code == 999) {
                 promo_error = "-- Please Enter Number Between 1~5 --";
                 continue;}
-            pawnPromotion(state, move_state.curserPos, promo_code);
+            promotePawn(state, move_state.curserPos, promo_code);
             promo_error = "";
             promoting = false;
             break;
@@ -570,7 +580,7 @@ void makeMove(gameState& state) {
 //NEEDDO// Loop when playing game (seleceting piece)
 void gameLoop(gameState& state) {
 
-    char game_rspd;
+    unsigned char game_rspd;
     while (state.gameReason == "")
     {
         clearScreen();
@@ -579,33 +589,37 @@ void gameLoop(gameState& state) {
         game_rspd = toupper(game_rspd);
 
         switch (game_rspd) {
-            case 'W': //movement inputs
+
+            case 224: // detecting lead byte for arrow keys
+                game_rspd = _getch(); // striping arrow keys input after the lead byte
+            case 'W': // movement inputs
             case 'A':
             case 'S':
             case 'D':
                 moveCursor(state, game_rspd);
                 break;
 
-            case 'E':{ //select cell
+            case '\r': // this is the input from _getch() when 'enter' is pressed (ASCII code 13)
+            case 'E':{ // select cell
                 Cell cursur_cell = state.board[state.curserPos[0]][state.curserPos[1]];
-                if (state.isWhiteTurn&&cursur_cell.cellOwner=='w' || !state.isWhiteTurn&&cursur_cell.cellOwner=='b'){
+                if (state.isWhiteTurn&&cursur_cell.cellOwner=='w' || !state.isWhiteTurn&&cursur_cell.cellOwner=='b')
                     makeMove(state); 
-                } 
+                
                 break;}
 
-            case 'Q':  //Quit game
+            case 'Q':  // Quit game
                 quitConfirmation(state);
                 break;
 
-            case 'X':  //resign
+            case 'X':  // resign
                 resignConfirmation(state);
                 break;
 
-            case 'U': //undo
+            case 'U': // undo
                 undoConfirmation(state);
                 break;
 
-            case 'P': //draw
+            case 'P': // draw
                 drawConfirmation(state);
                 break;
         }
@@ -620,10 +634,14 @@ void gameLoop(gameState& state) {
         else if (state.gameReason=="Stalemated")
             drawScreen(state, true);
     }
-    else if (state.gameReason=="Drawed")
+    else if (state.gameReason=="Drawed") {
+        saveStateToFile(state, state.fileName);
         drawScreen(state);
-    else if (state.gameReason=="Resigned") 
+    }
+    else if (state.gameReason=="Resigned") {
+        saveStateToFile(state, state.fileName);
         resignScreen(state);
+    }
     else if (state.gameReason=="Quit")
         messageBox("Game Saved", "Returning to Main Menu...");
     
@@ -675,10 +693,21 @@ void continueGame() {
 
         if (step == 3) {
             //see if game was finished because checkmated/stalemated, ask if want to undo and continue game
-            if (state.gameReason=="Checkmated" || state.gameReason=="Stalemated") {
-                cout << "\nThis game was finished: " << state.gameReason << "\n";
-                cout << "Undo to right before getting " << state.gameReason << " and continue game?\n1.Yes\n2.No";
-                
+            if (state.gameReason!="") {
+                if (state.gameReason=="Checkmated" || state.gameReason=="Stalemated") {
+                    cout << "\nThis game was finished: " << state.gameReason << "\n";
+                    cout << "Undo to right before getting " << state.gameReason << " and continue game?\n1.Yes\n2.No";
+                }
+                else if (state.gameReason == "Resigned") {
+                    string resignee = (state.isWhiteTurn ? "White" : "Black");
+                    cout << "\nThis game was finished: " << resignee + " Resigned \n";
+                    cout << "Resume Game?\n1.Yes\n2.No";
+                }
+                else {
+                    cout << "\nThis game was finished: Drawed\n";
+                    cout << "Resume Game?\n1.Yes\n2.No";
+                }
+
                 choice = getChoice(1, 2, error_text);
                 if (choice == 999) {
                     error_text = ERROR_TEXT_FOR_2;

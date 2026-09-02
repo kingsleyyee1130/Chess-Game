@@ -36,12 +36,17 @@ typedef array<array<Cell, 8>, 8> boardArray_t; //to replace lengthy 8x8 array ty
 
 // this struct is updated after every move to display the current game state
 struct gameState {
+	// chess board
 	boardArray_t board;
+
+	// game state
 	bool isWhiteTurn = true;
 	bool isInCheck = false;
 
-	// defaulting to no 'en passant target' at game start
-	// using cellName format from chessBoardList.h
+	// current cursor (to choose piece) position 
+	int curserPos[2] {3,3};
+
+	// defaulting to no 'en passant target' at game start (using cellName)
 	string enPassantTarget = "00";
 
 	// default castling availabities at game start
@@ -50,12 +55,9 @@ struct gameState {
 	bool blackCanCastleKS = true;
 	bool blackCanCastleQS = true;
 
-	int curserPos[2] {3,3};
-
-	// description of the last move made
-	string moveHistory = ""; // or "White moved Pawn to e4"
+	// info regarding the game
 	int moveCount = 0;
-
+	string moveHistory = ""; // or "White moved Pawn to e4"
 	string fileName = "";
 	string whitePlayer = "Albino";
 	string blackPlayer = "Obama";
@@ -76,7 +78,7 @@ void executeMove(gameState& state, int startCell[2], int endCell[2]);
 bool isPawnPromotion(const gameState& state, int endCell[2]);
 
 // --promotes a pawn to piece of choice
-void pawnPromotion(gameState& state, int targetCell[2], int choice);
+void promotePawn(gameState& state, int targetCell[2], int choice);
 
 // --returns a new gameState with every possible move for a piece (even if making the move self checks king)--
 gameState generatePieceMoves(gameState state, Cell moving_cell);

@@ -197,9 +197,8 @@ void executeMove(gameState& state, int startCell[2], int endCell[2]) {
 	if (endSquare.cellName == "h8") state.blackCanCastleKS = false;
 }
 
-// this function is called every time when a pawn is selected by a user. 
-// another section of code should be written in main() (or in executeMove() ?) such that, 
-// if isPawnPromotion, then *executes the actual promotion*
+
+// checks if a pawn is valid for promotion
 bool isPawnPromotion(const gameState &state, int endCell[2]) {
 	const boardArray_t board = state.board;
 	Cell endSquare = board[endCell[0]][endCell[1]];
@@ -215,8 +214,8 @@ bool isPawnPromotion(const gameState &state, int endCell[2]) {
 }
 
 
-//
-void pawnPromotion(gameState& state, int targetCell[2], int choice) {
+// promotes a pawn
+void promotePawn(gameState& state, int targetCell[2], int choice) {
     Cell& promoCell = state.board[targetCell[0]][targetCell[1]];
     array<string, 9> pieceSymbols = (promoCell.cellOwner=='w' ? chess_symbol_white : chess_symbol_black);
     string pieceChoice[6] = {" ", "Queen", "Bishop", "Knight", "Rook", "Pawn"};

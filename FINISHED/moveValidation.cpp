@@ -17,6 +17,11 @@ string dummy;
 
 // to check if a coordinate is within chess board
 bool isWithinBounds(int startCell[2], int endCell[2]) {
+	// initializing
+	bool startXTrue = false;
+	bool startYTrue = false;
+	bool endXTrue = false;
+	bool endYTrue = false;
 
 	return (startCell[0] >= 0 && startCell[0] < 8
 		&& startCell[1] >= 0 && startCell[1] < 8
@@ -62,7 +67,7 @@ bool isPathClear(const boardArray_t &board, int startCell[2], int endCell[2]) {
 	return true;
 }
 
-// piece specific validation functions start here
+// ==== piece specific validation functions start here ====
 bool validateKnight(int startCell[2], int endCell[2]) {
 
 	int dx = abs(endCell[0] - startCell[0]);
@@ -184,7 +189,7 @@ bool validateQueen(const boardArray_t &board, int startCell[2], int endCell[2]){
 	return (rook == true || bishop == true);
 }
 
-
+// generic validation function that recognises piece type in cell and calls validation function accordingly
 bool doesCellHaveMoves(const gameState &state, int startCell[2], int endCell[2]) {
 	const boardArray_t board = state.board;
 	string piece = state.board[startCell[0]][startCell[1]].pieceName;

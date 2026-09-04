@@ -223,7 +223,8 @@ bool isMoveLegal(const gameState &state, int startCell[2], int endCell[2]) {
 		return false;
 	if (startCell[0] == endCell[0] && startCell[1] == endCell[1]) //start == end position
 		return false;
-	if (startSquare.pieceName == "King" && endSquare.pieceName == "Rook" && abs(endCell[0] - startCell[0]) > 1) //special bypass for castling (must be put on top of "eating self")
+	if (startSquare.pieceName == "King" && endSquare.pieceName == "Rook"
+		&& startSquare.cellOwner==endSquare.cellOwner && abs(endCell[0] - startCell[0]) > 1) //special bypass for castling (must be put on top of "eating self")
 		return doesCellHaveMoves(state, startCell, endCell);
 	if (startSquare.cellOwner == endSquare.cellOwner) //eating self--
 		return false;

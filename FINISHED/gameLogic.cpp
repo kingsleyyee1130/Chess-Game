@@ -71,7 +71,7 @@ void executeMove(gameState& state, int startCell[2], int endCell[2]) {
 		
 
 	// if en passant is performed
-	if (endSquare.cellName == state.enPassantTarget) {
+	if (endSquare.cellName == state.enPassantTarget && startSquare.pieceName == "Pawn") {
 		int eatenCell[2];
 		if (endCell[1] == 5) {      //position of black pawn being eaten
 			eatenCell[0] = endCell[0];

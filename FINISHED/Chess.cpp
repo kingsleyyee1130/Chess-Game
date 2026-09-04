@@ -30,6 +30,10 @@ int main()
                 break;
 
             case 3:
+                chooseStatistic();
+                break;
+            
+            case 4:
                 exitScreen();
                 return 0;
         }

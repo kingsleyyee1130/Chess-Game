@@ -7,6 +7,7 @@
 #include <array>
 #include <string>
 #include <conio.h>
+#include <sstream>
 
 #include "gameFlow.h"
 #include "gameLogic.h"
@@ -108,6 +109,8 @@ void showWelcomeScreen() {
     cout<<"                          Group 34                               \n";
     cout<<"==============================================================\n\n";
 
+    cout<<"         Use Full Screnn (F11) for better experience\n\n";
+
     cout<<"                   Press ENTER to Continue\n";
 
     waitForEnter();
@@ -126,13 +129,14 @@ int showMainMenu() {
 
         cout<<"                   1. Start New Game\n\n";
         cout<<"                   2. Continue Game\n\n";
-        cout<<"                   3. Exit\n\n";
+        cout<<"                   3. Statistics\n\n";
+        cout<<"                   4. Exit\n\n";
 
         cout<<"==============================================================\n";
 
-        input = getChoice(1,3,error);
+        input = getChoice(1,4,error);
         if(input==999) 
-            error = "-- Please Enter only 1~3 --";
+            error = "-- Please Enter only 1~4 --";
         else
             break;
     }
@@ -211,10 +215,10 @@ void displayPlayView (const gameState& state, bool moving = false) {
     else if (state.moveCount == 74)
         movesobig = "";
 
-    cout << "Game : " << setw(VIEW_WIDTH-21) << std::left << "game_name" << std::right << "Half-Move: " << state.moveCount << movesobig << "\n";
+    cout << "Game : " << setw(VIEW_WIDTH-21) << std::left << game_name << std::right << "Half-Move: " << state.moveCount << movesobig << "\n";
     cout << "White: " << state.whitePlayer << "\n";
     cout << "Black: " << state.blackPlayer << "\n";
-    cout << "Turn : " << current_color << " | Move History: " << (history.length()>21 ? history.substr(history.length()-21) : history) << "\n";
+    cout << "Turn : " << current_color << " | Move History: " << (history.length()>56 ? history.substr(history.length()-56) : history) << "\n";
     cout << string(VIEW_WIDTH, '-') << '\n';
 
     printPlayBoard(state);
@@ -311,6 +315,57 @@ void resignScreen(const gameState& state) {
 
     winnerScreen(state);
     
+}
+
+//NEEDDO// Show Statistics of a particular game lastest state
+void showStatistics(const gameState& state) {
+    string game_name = state.fileName.substr(0, state.fileName.size()-4);
+    string game_state = (state.gameReason!="" ? state.gameReason : "On-going");
+    int white_captured = 16;
+    int black_captured = 16;
+    int half_moves = (game_state=="On-going" ? state.moveCount-1 : state.moveCount);
+
+    for (auto subboard : state.board) {
+    for (auto cell : subboard) {
+        if (cell.cellOwner=='w')
+            white_captured--;
+        else if (cell.cellOwner=='b')
+            black_captured--;
+    }
+    }
+
+    clearScreen();
+    cout << "Game : " << setw(VIEW_WIDTH-21) << std::left << game_name << std::right << "\n";
+    cout << "White: " << state.whitePlayer << "\n";
+    cout << "Black: " << state.blackPlayer << "\n";
+    cout << "Total Half-Moves: " << half_moves << '\n';
+    cout << "Total White Piece Captured: " << white_captured << '\n';
+    cout << "Total Black Piece Captured: " << black_captured << '\n';
+    cout << "Game State: " << game_state << '\n';
+    cout << string(VIEW_WIDTH, '-') << '\n';
+
+    cout << string(VIEW_WIDTH, '=') << '\n';
+    cout << centeredString("MOVE HISTORY", VIEW_WIDTH) << '\n';
+    cout << string(VIEW_WIDTH, '=') << '\n';
+
+    // print movehistory
+    std::stringstream history(state.moveHistory);
+    string move;
+    while (getline(history, move, ' ')) {
+        cout << setw(30) << move + ' ';
+        getline(history, move, ' ');
+        cout << setw(8) << std::left << move << std::right;
+        getline(history, move, ' ');
+        cout << setw(30) << move + ' ';
+        getline(history, move, ' ');
+        cout << move;
+        cout << '\n';
+    }
+
+    cout << '\n' << string(VIEW_WIDTH, '-') << '\n';
+    cout << "Press Enter to Return to Statistics...";
+    waitForEnter();
+
 }
 
 
@@ -530,6 +585,7 @@ void makeMove(gameState& state) {
         executeMove(state, selected_cell.coordinate, move_state.curserPos);
 
         string promo_error = "";
+        int promo_code = 99;
         promoting = isPawnPromotion(state, move_state.curserPos);
         while (promoting) {
             clearScreen();
@@ -541,7 +597,7 @@ void makeMove(gameState& state) {
                 << "4.Rook\n"
                 << "5.No Promotion\n"
                 << "Please choose a piece to promote to (1~5)";
-            int promo_code = getChoice(1, 5, promo_error);
+            promo_code = getChoice(1, 5, promo_error);
             if (promo_code == 999) {
                 promo_error = "-- Please Enter Number Between 1~5 --";
                 continue;}
@@ -550,9 +606,6 @@ void makeMove(gameState& state) {
             promoting = false;
             break;
         }
-        //record history move
-        char pieceName = (selected_cell.pieceName=="Knight" ? 'N' : selected_cell.pieceName[0]);
-        state.moveHistory += to_string(state.moveCount) + pieceName + selected_cell.cellName + move_cell.cellName + ' ';
         
         //checking next player's states
         state.isInCheck = isInCheck(state, next_color);
@@ -566,11 +619,29 @@ void makeMove(gameState& state) {
                 state.gameReason = "Stalemated";
             }
         }
+        // record history move
+        string promotionPiece = " QBKR ";
+        string moveStep;
+        if (selected_cell.pieceName=="King" && move_cell.pieceName=="Rook" && selected_cell.cellOwner==move_cell.cellOwner) { // special check for castling
+            if (move_cell.coordinate[0] == 0)
+                moveStep = "o-o-o ";
+            if (move_cell.coordinate[0] == 7)
+                moveStep = "o-o ";
+        }
+        else {
+            string checks  = (state.isInCheck ? "+" : "");
+            string endcue  = (state.gameReason=="" ? checks : "#");
+            string captures  = (move_cell.isEmpty ? "" : "x");
+            char promote = (promo_code==99 ? '\0' : promotionPiece[promo_code]);
+            moveStep = selected_cell.pieceSymbol + ' ' + selected_cell.cellName + captures + move_cell.cellName + promote + endcue + ' ';
+        }
+        state.moveHistory += to_string(state.moveCount) + '.' + moveStep;
+        
         if (state.gameReason==""){
             state.moveCount ++;
             state.isWhiteTurn = !state.isWhiteTurn;
         }
-        //save gameState
+        // save gameState
         saveStateToFile(state, state.fileName);
     }
     state.curserPos[0] = move_state.curserPos[0];
@@ -804,4 +875,38 @@ void startNewGame() {
     gameLoop(new_state);
 }
 
+// Choose a game to check statistics
+void chooseStatistic() {
+    gameState state;
+    int choice;
+    int maximum;
 
+    string error_text;
+    while (true) { // loop for game selection
+
+        clearScreen();
+        maximum = showAllFile();
+        cout << string(50, '-')<<'\n';
+    
+        cout << "Choose a previous game to resume (eg. 1, 2, 3)\n";
+        cout << "Enter 0 to Exit";
+        choice = getChoice(0, maximum, error_text);
+        if (choice == 999){
+            error_text = "-- Please Only Enter Number from 0 to " + to_string(maximum) + " --";
+            continue;
+        }
+        else if (choice == 0)
+            return;
+
+        error_text.clear();
+        //extract gameState from file, returns to main menu if error wrong
+        string fileResume = readFileName(choice);
+        if (!loadLatestGameState(state, fileResume)){
+            cout << "Error: Failed to load game statistics\n";
+            cout << "Returning to Main Menu...";
+            waitForEnter();
+            return;
+        }
+        showStatistics(state);
+    }
+}

@@ -15,3 +15,6 @@ void startNewGame();
 
 // Continue Previous Games
 void continueGame();
+
+// Choose a game to check statistics
+void chooseStatistic();

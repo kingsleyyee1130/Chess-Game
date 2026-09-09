@@ -835,12 +835,12 @@ void startNewGame() {
                 return;
             if (hasSpace(whitePlayer)){
                 cout << "-- No Spaces are allowed in name --\n";
-                cout << "Please reenter your name...";
+                cout << "Press Enter to reenter your name...";
                 waitForEnter();
                 step--;}
             else if (hasPunct(whitePlayer)){
                 cout << "-- No Punctuations are allowed in name --\n";
-                cout << "Please reenter your name...";
+                cout << "Press Enter to reenter your name...";
                 waitForEnter();
                 step--;}
             else 

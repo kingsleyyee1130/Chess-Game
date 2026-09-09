@@ -320,10 +320,9 @@ void resignScreen(const gameState& state) {
 //NEEDDO// Show Statistics of a particular game lastest state
 void showStatistics(const gameState& state) {
     string game_name = state.fileName.substr(0, state.fileName.size()-4);
-    string game_state = (state.gameReason!="Quit" ? state.gameReason : "On-going");
+    string game_state = (state.gameReason!="" ? state.gameReason : "On-going");
     int white_captured = 16;
     int black_captured = 16;
-    int half_moves = (game_state=="On-going" ? state.moveCount-1 : state.moveCount);
 
     for (auto subboard : state.board) {
     for (auto cell : subboard) {
@@ -338,7 +337,7 @@ void showStatistics(const gameState& state) {
     cout << "Game : " << setw(VIEW_WIDTH-21) << std::left << game_name << std::right << "\n";
     cout << "White: " << state.whitePlayer << "\n";
     cout << "Black: " << state.blackPlayer << "\n";
-    cout << "Total Half-Moves: " << half_moves << '\n';
+    cout << "Total Half-Moves: " << state.moveCount << '\n';
     cout << "Total White Piece Captured: " << white_captured << '\n';
     cout << "Total Black Piece Captured: " << black_captured << '\n';
     cout << "Game State: " << game_state << '\n';

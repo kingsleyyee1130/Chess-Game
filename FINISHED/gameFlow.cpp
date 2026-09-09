@@ -57,12 +57,12 @@ void clearScreen() {
 #endif
 }
 
-//NEEDDO// Stops console for next enter input
+//NEEDDOne// Stops console for next enter input
 void waitForEnter() {
     getline(cin, dummy_string);
 }
 
-//NEEDDO// Generate text centered in a specified length, surrounded by character of choice defaulted to space
+//NEEDDOne// Generate text centered in a specified length, surrounded by character of choice defaulted to space
 string centeredString(string text, int length, char space = ' ') {
 
     int left  = length/2 - floor(text.length()/2.0);
@@ -71,7 +71,7 @@ string centeredString(string text, int length, char space = ' ') {
     return string(left, space) + text + string(right, space);
 }
 
-//NEEDDO// Returns intended num between max and min, returns 999 if not
+//NEEDDOne// Returns intended num between max and min, returns 999 if not
 int getChoice(int minimum, int maximum, const string error_text = "") {
     int choice;
     
@@ -116,7 +116,7 @@ void showWelcomeScreen() {
     waitForEnter();
 } 
 
-//NEEDDO// Main menu, returns chosen option
+//NEEDDOne// Main menu, returns chosen option
 int showMainMenu() {
     int input;
     string error;
@@ -124,7 +124,7 @@ int showMainMenu() {
         clearScreen();
 
         cout<<"==============================================================\n";
-        cout<<"                    CONSOLE CHESS GAME\n";
+        cout<<"                    CONSOLE CHESS GAME                        \n";
         cout<<"==============================================================\n\n";
 
         cout<<"                   1. Start New Game\n\n";
@@ -169,7 +169,7 @@ void messageBox(string title,string msg) {
     waitForEnter();
 }
 
-//NEEDDO// Print board with coordinate alphanumbers
+//NEEDDOne// Print board with coordinate alphanumbers
 void printPlayBoard(const gameState& state, int indent=8) {
     SetConsoleOutputCP(CP_UTF8);
     auto board = state.board;
@@ -187,15 +187,15 @@ void printPlayBoard(const gameState& state, int indent=8) {
             lefts  = ' ';
             rights = ' ';
         }
-        cout << "|\n"; //notice there is a "|" at front
+        cout << "|\n"; // notice there is a "|" at front
     }
-        cout << string(indent, ' ') << string(33, '-') << "\n";
-        cout << string(indent, ' ');
-        for (int i=0; i<8; i++){
-            char alpha = 'a'+i;
-            cout << setw(3) << alpha << ' ';
-        }
-        cout << "\n\n";
+    cout << string(indent, ' ') << string(33, '-') << "\n";
+    cout << string(indent, ' ');
+    for (int i=0; i<8; i++){
+        char alpha = 'a'+i;
+        cout << setw(3) << alpha << ' ';
+    }
+    cout << "\n\n";
 }
 
 // Display including board and commands 
@@ -277,7 +277,7 @@ void winnerScreen(const gameState& state) {
     waitForEnter();
 }
 
-//NEEDDO// Result screen when someone drawd (stalemate screen included)
+//NEEDDOne// Result screen when someone drawd (stalemate screen included)
 void drawScreen(const gameState& state, bool stalemate=false) {
     string display_text = (stalemate ? "STALEMATE" : "DRAW");
 
@@ -295,15 +295,15 @@ void drawScreen(const gameState& state, bool stalemate=false) {
     waitForEnter();
 }
 
-//NEEDDO// Result screen someone resign
+//NEEDDOne// Result screen someone resign
 void resignScreen(const gameState& state) {
+    char boarder = '=';
     string display_text;
     if (state.winner == state.whitePlayer)
         display_text = state.blackPlayer + " RESIGNED";
     else 
         display_text = state.whitePlayer + " RESIGNED";
 
-    char boarder = '=';
     clearScreen();
     displayPlayView(state);
     cout << string(VIEW_WIDTH, boarder) << "\n";
@@ -342,16 +342,18 @@ void showStatistics(const gameState& state) {
     cout << "Total White Piece Captured: " << white_captured << '\n';
     cout << "Total Black Piece Captured: " << black_captured << '\n';
     cout << "Game State: " << game_state << '\n';
-    cout << string(VIEW_WIDTH, '-') << '\n';
+    cout << string(VIEW_WIDTH, '-') << "\n\n";
 
     cout << string(VIEW_WIDTH, '=') << '\n';
     cout << centeredString("MOVE HISTORY", VIEW_WIDTH) << '\n';
     cout << string(VIEW_WIDTH, '=') << '\n';
 
     // print movehistory
+    bool no_history = true;
     std::stringstream history(state.moveHistory);
     string move;
     while (getline(history, move, ' ')) {
+        no_history = false;
         cout << setw(30) << move + ' ';
         getline(history, move, ' ');
         cout << setw(8) << std::left << move << std::right;
@@ -361,6 +363,7 @@ void showStatistics(const gameState& state) {
         cout << move;
         cout << '\n';
     }
+    if (no_history) cout << centeredString("NO MOVES", VIEW_WIDTH);
 
     cout << '\n' << string(VIEW_WIDTH, '-') << '\n';
     cout << "Press Enter to Return to Statistics...";
@@ -419,7 +422,7 @@ void resignConfirmation(gameState& state) {
     }
 }
 
-// Input validation for Undo Game (inside game loop)
+//NEEDDOne// Input validation for Undo Game (inside game loop)
 void undoConfirmation(gameState& state) {
     string error_text = "";
     int undo_rspd;
@@ -442,7 +445,7 @@ void undoConfirmation(gameState& state) {
     }
 }
 
-// Input validation for Draw Game (inside game loop)
+//NEEDDOne// Input validation for Draw Game (inside game loop)
 void drawConfirmation(gameState& state) {
     string error_text = "";
     int draw_rspd;
@@ -472,7 +475,7 @@ void drawConfirmation(gameState& state) {
         }
         if (step==3){
             cout << player2 << ": Sure to Draw? \n1.Yes\n2.No";
-            int draw_rspd = getChoice(1,2, error_text);
+            draw_rspd = getChoice(1,2, error_text);
             if (draw_rspd == 999){
                 error_text = ERROR_TEXT_FOR_2;
                 step -= 1;}
@@ -490,7 +493,7 @@ void drawConfirmation(gameState& state) {
     }
 }
 
-//NEEDDO// Move cursor printed on board
+//NEEDDOne// Move cursor printed on board
 void moveCursor(gameState& state, char key){
     key = toupper(key);
     int& cursorCol = state.curserPos[0];
@@ -524,7 +527,7 @@ void moveCursor(gameState& state, char key){
     }
 }
 
-//NEEDDO// Loop when moving a selected piece
+//NEEDDOne// Loop when moving a selected piece
 void makeMove(gameState& state) {
 
     char current_color = (state.isWhiteTurn ? 'w' : 'b');
@@ -637,12 +640,13 @@ void makeMove(gameState& state) {
         }
         state.moveHistory += to_string(state.moveCount) + '.' + moveStep;
         
+        // save gameState
+        saveStateToFile(state, state.fileName);
+
         if (state.gameReason==""){
             state.moveCount ++;
             state.isWhiteTurn = !state.isWhiteTurn;
         }
-        // save gameState
-        saveStateToFile(state, state.fileName);
     }
     state.curserPos[0] = move_state.curserPos[0];
     state.curserPos[1] = move_state.curserPos[1];
@@ -675,7 +679,6 @@ void gameLoop(gameState& state) {
                 Cell cursur_cell = state.board[state.curserPos[0]][state.curserPos[1]];
                 if (state.isWhiteTurn&&cursur_cell.cellOwner=='w' || !state.isWhiteTurn&&cursur_cell.cellOwner=='b')
                     makeMove(state); 
-                
                 break;}
 
             case 'Q':  // Quit game
@@ -702,7 +705,7 @@ void gameLoop(gameState& state) {
         waitForEnter();
         if (state.gameReason=="Checkmated")
             winnerScreen(state);
-        else if (state.gameReason=="Stalemated")
+        else 
             drawScreen(state, true);
     }
     else if (state.gameReason=="Drawed") {
@@ -888,7 +891,7 @@ void chooseStatistic() {
         maximum = showAllFile();
         cout << string(50, '-')<<'\n';
     
-        cout << "Choose a previous game to resume (eg. 1, 2, 3)\n";
+        cout << "Choose a previous game to view statistics (eg. 1, 2, 3)\n";
         cout << "Enter 0 to Exit";
         choice = getChoice(0, maximum, error_text);
         if (choice == 999){

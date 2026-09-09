@@ -320,7 +320,7 @@ void resignScreen(const gameState& state) {
 //NEEDDO// Show Statistics of a particular game lastest state
 void showStatistics(const gameState& state) {
     string game_name = state.fileName.substr(0, state.fileName.size()-4);
-    string game_state = (state.gameReason!="" ? state.gameReason : "On-going");
+    string game_state = (state.gameReason!="Quit" ? state.gameReason : "On-going");
     int white_captured = 16;
     int black_captured = 16;
     int half_moves = (game_state=="On-going" ? state.moveCount-1 : state.moveCount);
@@ -716,8 +716,8 @@ void gameLoop(gameState& state) {
         saveStateToFile(state, state.fileName);
         resignScreen(state);
     }
-    else if (state.gameReason=="Quit")
-        messageBox("Game Saved", "Returning to Main Menu...");
+    else if (state.gameReason=="Quit") {
+        messageBox("Game Saved", "Returning to Main Menu...");}
     
   
 
@@ -797,8 +797,10 @@ void continueGame() {
                     step = 0;
                     continue;}
             }
-            else 
-                step += 2;
+            else {
+                state.moveCount++;
+                state.isWhiteTurn = !state.isWhiteTurn;
+                step += 2;}
         }
 
         if (step == 5){
@@ -873,7 +875,9 @@ void startNewGame() {
     string file_name = saveFileToMaster(whitePlayer, blackPlayer);
     new_state.fileName = file_name;
     saveStateToFile(new_state, file_name);
+    // initialization move for next player
     new_state.moveCount ++;
+    new_state.isWhiteTurn = !new_state.isWhiteTurn;
     
     gameLoop(new_state);
 }
@@ -891,7 +895,7 @@ void chooseStatistic() {
         maximum = showAllFile();
         cout << string(50, '-')<<'\n';
     
-        cout << "Choose a previous game to view statistics (eg. 1, 2, 3)\n";
+        cout << "Choose one game for statistics (eg. 1, 2, 3)\n";
         cout << "Enter 0 to Exit";
         choice = getChoice(0, maximum, error_text);
         if (choice == 999){

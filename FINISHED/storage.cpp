@@ -21,9 +21,6 @@ using namespace std;
 const string MASTER_FILE_NAME = "File_of_file.txt";
 
 // ===== HELPER: strip whitespace, but never inside a quoted JSON string =====
-// (the previous version stripped ALL whitespace including inside quotes,
-// which silently corrupted any string field containing a space --
-// e.g. moveHistory ("White moved Pawn to e4") or player names with spaces)
 string stripWhitespaceOutsideQuotes(const string& input) {
     string result;
     bool inQuotes = false;
@@ -357,9 +354,8 @@ bool deleteLastStateFromFile(const string& filename) {
     }
     file.close();
 
-    if (lines.empty()) {
+    if (lines.size()<=1) 
         return false;
-    }
 
     // Remove the last line
     lines.pop_back();
@@ -372,7 +368,6 @@ bool deleteLastStateFromFile(const string& filename) {
     }
     outFile.close();
 
-    cout << "Undo successfull. " << lines.size() << " moves now." << endl;
     return true;
 }
 
@@ -434,9 +429,13 @@ int getTotalMovesInFile(const string& filename) {
 // Undo to last gameState
 bool undoMove(gameState& state) {
     
-    if(deleteLastStateFromFile(state.fileName))
-        if (loadLatestGameState(state, state.fileName))
+    if (deleteLastStateFromFile(state.fileName))
+        if (loadLatestGameState(state, state.fileName)) {
+            // move initialization for next player
+            state.moveCount++;
+            state.isWhiteTurn = !state.isWhiteTurn;
             return true;
+        }
 
     return false;
 }
@@ -469,11 +468,6 @@ int showAllFile() {
 }
 
 // connect user choice to filename for game resume
-// NOTE: choice is 1-indexed (matches the numbering printed by
-// showAllFile()). The original loop used "i <= choice", which reads one
-// line too many and returns the NEXT entry instead of the selected one
-// (choice=1 returned the 2nd file, not the 1st). Changed to "i < choice"
-// so exactly `choice` lines are read.
 string readFileName(int choice) {
     ifstream file(MASTER_FILE_NAME);
     string line;

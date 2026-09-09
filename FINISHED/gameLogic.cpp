@@ -131,10 +131,12 @@ void executeMove(gameState& state, int startCell[2], int endCell[2]) {
 		
 		//falsing all CanCastle boolean
 		//because "update castle rights" section below uses endSquare to verify, which here it's already empty
-		state.whiteCanCastleKS = false;
-		state.whiteCanCastleQS = false;
-		state.blackCanCastleKS = false;
-		state.blackCanCastleQS = false;
+		if (state.isWhiteTurn) {
+			state.whiteCanCastleKS = false;
+			state.whiteCanCastleQS = false;}
+		else {
+			state.blackCanCastleKS = false;
+			state.blackCanCastleQS = false;}
 		}
 
 	else
